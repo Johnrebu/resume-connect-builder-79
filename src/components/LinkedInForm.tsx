@@ -6,22 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Linkedin, Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const LinkedInForm: React.FC = () => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const validateLinkedInUrl = (url: string): boolean => {
+    // Basic validation for LinkedIn URL format
+    const linkedInRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/i;
+    return linkedInRegex.test(url);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!url) {
+    if (!url.trim()) {
       setError('Please enter your LinkedIn URL');
       return;
     }
     
-    if (!url.includes('linkedin.com')) {
-      setError('Please enter a valid LinkedIn URL');
+    // Check if URL contains linkedin.com/in/
+    if (!validateLinkedInUrl(url)) {
+      setError('Please enter a valid LinkedIn profile URL (e.g., https://www.linkedin.com/in/your-profile)');
       return;
     }
     
@@ -31,10 +39,19 @@ const LinkedInForm: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
+      toast({
+        title: "Success!",
+        description: "Your LinkedIn profile has been imported successfully.",
+      });
       // In a real app, this would fetch the LinkedIn data and then redirect to the CV editor
       // For demo purposes, we'll just clear the form
       setUrl('');
     }, 2000);
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+    if (error) setError('');
   };
 
   return (
@@ -68,7 +85,7 @@ const LinkedInForm: React.FC = () => {
                       id="linkedin-url"
                       placeholder="https://www.linkedin.com/in/your-profile"
                       value={url}
-                      onChange={(e) => setUrl(e.target.value)}
+                      onChange={handleUrlChange}
                       className={error ? 'border-destructive' : ''}
                     />
                     {error && <p className="text-sm text-destructive">{error}</p>}

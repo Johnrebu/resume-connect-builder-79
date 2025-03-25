@@ -1,13 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import NavBar from '../components/NavBar';
 import Hero from '../components/Hero';
-import LinkedInForm from '../components/LinkedInForm';
+import LinkedInForm, { LinkedInProfileData } from '../components/LinkedInForm';
 import CVPreview from '../components/CVPreview';
 import { Button } from '@/components/ui/button';
 import { ArrowRightIcon, CheckCircle2, Linkedin } from 'lucide-react';
 
 const Index: React.FC = () => {
+  const [profileData, setProfileData] = useState<LinkedInProfileData | null>(null);
+  
+  const handleProfileImport = (data: LinkedInProfileData) => {
+    setProfileData(data);
+  };
+
   return (
     <div className="min-h-screen">
       <NavBar />
@@ -42,9 +48,9 @@ const Index: React.FC = () => {
           </div>
         </section>
         
-        <LinkedInForm />
+        <LinkedInForm onProfileImport={handleProfileImport} />
         
-        <CVPreview />
+        <CVPreview profileData={profileData} />
         
         <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4">

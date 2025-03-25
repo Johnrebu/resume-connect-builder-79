@@ -3,10 +3,17 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowDownIcon, ArrowRightIcon, DownloadIcon, EyeIcon, PencilIcon } from "lucide-react";
+import { LinkedInProfileData } from './LinkedInForm';
 
-const CVPreview: React.FC = () => {
+interface CVPreviewProps {
+  profileData: LinkedInProfileData | null;
+}
+
+const CVPreview: React.FC<CVPreviewProps> = ({ profileData }) => {
+  const hasData = profileData !== null;
+
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-muted/30" id="cv-preview">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 animate-fade-in">
           <h2 className="text-3xl font-bold mb-4">Your Professional CV, Instantly Created</h2>
@@ -48,8 +55,8 @@ const CVPreview: React.FC = () => {
             </div>
             
             <div className="pl-10 pt-4">
-              <Button size="lg" className="group">
-                Create Your CV Now
+              <Button size="lg" className="group" onClick={() => document.getElementById('import')?.scrollIntoView({ behavior: 'smooth' })}>
+                {hasData ? "Edit Your CV" : "Create Your CV Now"}
                 <ArrowRightIcon className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
@@ -81,10 +88,10 @@ const CVPreview: React.FC = () => {
                     <div className="p-6 border-b">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="text-2xl font-bold">John Appleseed</h3>
-                          <p className="text-primary">Senior Product Designer</p>
+                          <h3 className="text-2xl font-bold">{hasData ? profileData.name : "John Doe"}</h3>
+                          <p className="text-primary">{hasData ? profileData.title : "Your Job Title"}</p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Creative product designer with 7+ years of experience creating user-centered digital solutions.
+                            {hasData ? profileData.summary : "Enter a brief professional summary here."}
                           </p>
                         </div>
                         <div className="w-20 h-20 bg-muted rounded-full"></div>
@@ -96,42 +103,65 @@ const CVPreview: React.FC = () => {
                         <div>
                           <h4 className="text-sm font-semibold text-primary mb-2">EXPERIENCE</h4>
                           <div className="space-y-3">
-                            <div>
-                              <div className="flex justify-between">
-                                <div>
-                                  <h5 className="font-medium">Senior Product Designer</h5>
-                                  <p className="text-sm">Design Company Inc.</p>
+                            {hasData ? (
+                              profileData.experience.map((exp, index) => (
+                                <div key={index}>
+                                  <div className="flex justify-between">
+                                    <div>
+                                      <h5 className="font-medium">{exp.role}</h5>
+                                      <p className="text-sm">{exp.company}</p>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{exp.duration}</p>
+                                  </div>
+                                  {exp.description && (
+                                    <ul className="text-xs text-muted-foreground mt-1 space-y-1 list-disc list-inside">
+                                      {exp.description.map((item, i) => (
+                                        <li key={i}>{item}</li>
+                                      ))}
+                                    </ul>
+                                  )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">2020 - Present</p>
-                              </div>
-                              <ul className="text-xs text-muted-foreground mt-1 space-y-1 list-disc list-inside">
-                                <li>Led design of flagship product</li>
-                                <li>Increased user engagement by 45%</li>
-                              </ul>
-                            </div>
-                            
-                            <div>
-                              <div className="flex justify-between">
-                                <div>
-                                  <h5 className="font-medium">Product Designer</h5>
-                                  <p className="text-sm">Technology Solutions Ltd.</p>
+                              ))
+                            ) : (
+                              <div>
+                                <div className="flex justify-between">
+                                  <div>
+                                    <h5 className="font-medium">Your Position</h5>
+                                    <p className="text-sm">Company Name</p>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">Year - Year</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground">2017 - 2020</p>
                               </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                         
                         <div>
                           <h4 className="text-sm font-semibold text-primary mb-2">EDUCATION</h4>
-                          <div>
-                            <div className="flex justify-between">
+                          <div className="space-y-3">
+                            {hasData ? (
+                              profileData.education.map((edu, index) => (
+                                <div key={index}>
+                                  <div className="flex justify-between">
+                                    <div>
+                                      <h5 className="font-medium">{edu.degree}</h5>
+                                      <p className="text-sm">{edu.institution}</p>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{edu.duration}</p>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
                               <div>
-                                <h5 className="font-medium">Bachelor of Design</h5>
-                                <p className="text-sm">University of Technology</p>
+                                <div className="flex justify-between">
+                                  <div>
+                                    <h5 className="font-medium">Your Degree</h5>
+                                    <p className="text-sm">University Name</p>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">Year - Year</p>
+                                </div>
                               </div>
-                              <p className="text-xs text-muted-foreground">2013 - 2017</p>
-                            </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -140,28 +170,53 @@ const CVPreview: React.FC = () => {
                         <div>
                           <h4 className="text-sm font-semibold text-primary mb-2">CONTACT</h4>
                           <div className="space-y-1 text-sm">
-                            <p>john@example.com</p>
-                            <p>(123) 456-7890</p>
-                            <p>New York, NY</p>
+                            {hasData ? (
+                              <>
+                                <p>{profileData.contact.email}</p>
+                                <p>{profileData.contact.phone}</p>
+                                <p>{profileData.contact.location}</p>
+                              </>
+                            ) : (
+                              <>
+                                <p>email@example.com</p>
+                                <p>(123) 456-7890</p>
+                                <p>City, Country</p>
+                              </>
+                            )}
                           </div>
                         </div>
                         
                         <div>
                           <h4 className="text-sm font-semibold text-primary mb-2">SKILLS</h4>
                           <div className="flex flex-wrap gap-1">
-                            <span className="text-xs px-2 py-1 bg-muted rounded-full">UI/UX</span>
-                            <span className="text-xs px-2 py-1 bg-muted rounded-full">Figma</span>
-                            <span className="text-xs px-2 py-1 bg-muted rounded-full">Sketch</span>
-                            <span className="text-xs px-2 py-1 bg-muted rounded-full">Prototyping</span>
-                            <span className="text-xs px-2 py-1 bg-muted rounded-full">User Research</span>
+                            {hasData ? (
+                              profileData.skills.map((skill, index) => (
+                                <span key={index} className="text-xs px-2 py-1 bg-muted rounded-full">
+                                  {skill}
+                                </span>
+                              ))
+                            ) : (
+                              <>
+                                <span className="text-xs px-2 py-1 bg-muted rounded-full">Skill 1</span>
+                                <span className="text-xs px-2 py-1 bg-muted rounded-full">Skill 2</span>
+                              </>
+                            )}
                           </div>
                         </div>
                         
                         <div>
                           <h4 className="text-sm font-semibold text-primary mb-2">LANGUAGES</h4>
                           <div className="space-y-1 text-sm">
-                            <p>English (Native)</p>
-                            <p>Spanish (Conversational)</p>
+                            {hasData ? (
+                              profileData.languages.map((language, index) => (
+                                <p key={index}>{language}</p>
+                              ))
+                            ) : (
+                              <>
+                                <p>Language 1 (Proficiency)</p>
+                                <p>Language 2 (Proficiency)</p>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

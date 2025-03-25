@@ -7,11 +7,77 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Linkedin, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 
-const LinkedInForm: React.FC = () => {
+// Define a type for the profile data
+export type LinkedInProfileData = {
+  name: string;
+  title: string;
+  summary: string;
+  contact: {
+    email: string;
+    phone: string;
+    location: string;
+  };
+  experience: Array<{
+    role: string;
+    company: string;
+    duration: string;
+    description?: string[];
+  }>;
+  education: Array<{
+    degree: string;
+    institution: string;
+    duration: string;
+  }>;
+  skills: string[];
+  languages: string[];
+};
+
+// Sample LinkedIn profile data
+const sampleProfileData: LinkedInProfileData = {
+  name: "John Appleseed",
+  title: "Senior Product Designer",
+  summary: "Creative product designer with 7+ years of experience creating user-centered digital solutions.",
+  contact: {
+    email: "john@example.com",
+    phone: "(123) 456-7890",
+    location: "New York, NY"
+  },
+  experience: [
+    {
+      role: "Senior Product Designer",
+      company: "Design Company Inc.",
+      duration: "2020 - Present",
+      description: ["Led design of flagship product", "Increased user engagement by 45%"]
+    },
+    {
+      role: "Product Designer",
+      company: "Technology Solutions Ltd.",
+      duration: "2017 - 2020",
+      description: ["Redesigned core product interface", "Collaborated with development team"]
+    }
+  ],
+  education: [
+    {
+      degree: "Bachelor of Design",
+      institution: "University of Technology",
+      duration: "2013 - 2017"
+    }
+  ],
+  skills: ["UI/UX", "Figma", "Sketch", "Prototyping", "User Research"],
+  languages: ["English (Native)", "Spanish (Conversational)"]
+};
+
+interface LinkedInFormProps {
+  onProfileImport: (profile: LinkedInProfileData) => void;
+}
+
+const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const validateLinkedInUrl = (url: string): boolean => {
     // Basic validation for LinkedIn URL format
@@ -43,9 +109,19 @@ const LinkedInForm: React.FC = () => {
         title: "Success!",
         description: "Your LinkedIn profile has been imported successfully.",
       });
-      // In a real app, this would fetch the LinkedIn data and then redirect to the CV editor
-      // For demo purposes, we'll just clear the form
+      
+      // In a real app, this would fetch the LinkedIn data
+      // For demo purposes, we'll use sample data
+      onProfileImport(sampleProfileData);
+      
+      // Clear the form
       setUrl('');
+      
+      // Scroll to CV preview section
+      const previewSection = document.getElementById('cv-preview');
+      if (previewSection) {
+        previewSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }, 2000);
   };
 

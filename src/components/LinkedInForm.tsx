@@ -32,6 +32,7 @@ export type LinkedInProfileData = {
   }>;
   skills: string[];
   languages: string[];
+  enhancedSummary?: string;
 };
 
 // Sample LinkedIn profile data
@@ -69,6 +70,41 @@ const sampleProfileData: LinkedInProfileData = {
   languages: ["English (Native)", "Spanish (Conversational)"]
 };
 
+// Sample AlienZeus data
+const alienZeusProfileData: LinkedInProfileData = {
+  name: "Md. Rezaul Alam",
+  title: "Senior JavaScript Developer",
+  summary: "Experienced JavaScript Developer with expertise in React, Node.js, and front-end technologies.",
+  contact: {
+    email: "rezaulalam@example.com",
+    phone: "+880-123-456789",
+    location: "Dhaka, Bangladesh"
+  },
+  experience: [
+    {
+      role: "Senior JavaScript Developer",
+      company: "Tech Solutions BD",
+      duration: "2020 - Present",
+      description: ["Leading front-end development team", "Implemented responsive web applications using React"]
+    },
+    {
+      role: "Web Developer",
+      company: "Digital Innovations",
+      duration: "2018 - 2020",
+      description: ["Developed interactive web applications", "Optimized site performance"]
+    }
+  ],
+  education: [
+    {
+      degree: "BSc in Computer Science",
+      institution: "University of Dhaka",
+      duration: "2014 - 2018"
+    }
+  ],
+  skills: ["JavaScript", "React", "Node.js", "TypeScript", "HTML/CSS", "Redux", "REST API"],
+  languages: ["Bengali (Native)", "English (Fluent)"]
+};
+
 interface LinkedInFormProps {
   onProfileImport: (profile: LinkedInProfileData) => void;
 }
@@ -77,6 +113,7 @@ const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [geminiLoading, setGeminiLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateLinkedInUrl = (url: string): boolean => {
@@ -85,7 +122,61 @@ const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
     return linkedInRegex.test(url);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const enhanceWithGemini = async (profileData: LinkedInProfileData): Promise<LinkedInProfileData> => {
+    setGeminiLoading(true);
+    try {
+      const prompt = `
+        Given this professional profile:
+        Name: ${profileData.name}
+        Title: ${profileData.title}
+        Current Summary: ${profileData.summary}
+        Skills: ${profileData.skills.join(', ')}
+        Experience: ${profileData.experience.map(exp => `${exp.role} at ${exp.company}`).join(', ')}
+        
+        Write a compelling professional summary for their CV in about 100 words. Make it sound professional, highlight their skills and experience, and make them stand out. Do not include "Summary:" or other labels in your response.
+      `;
+
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCDSUu6Wrllv_Y7jT3B7K7aduDeHswlB2U", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        const enhancedSummary = data.candidates[0].content.parts[0].text;
+        return {
+          ...profileData,
+          enhancedSummary
+        };
+      } else {
+        console.error('Unexpected Gemini API response format:', data);
+        toast({
+          title: "Gemini Enhancement Failed",
+          description: "Could not enhance summary with Gemini. Using original summary.",
+        });
+        return profileData;
+      }
+    } catch (err) {
+      console.error('Error calling Gemini API:', err);
+      toast({
+        title: "Gemini API Error",
+        description: "Could not connect to Gemini API. Using original summary.",
+      });
+      return profileData;
+    } finally {
+      setGeminiLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!url.trim()) {
@@ -102,17 +193,22 @@ const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
     setError('');
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Check if the URL contains "alienzeus"
+      let profileData = url.toLowerCase().includes('alienzeus') 
+        ? alienZeusProfileData 
+        : sampleProfileData;
+      
+      // Enhance the profile with Gemini
+      profileData = await enhanceWithGemini(profileData);
+      
       toast({
         title: "Success!",
-        description: "Your LinkedIn profile has been imported successfully.",
+        description: "Your LinkedIn profile has been imported and enhanced successfully.",
       });
       
-      // In a real app, this would fetch the LinkedIn data
-      // For demo purposes, we'll use sample data
-      onProfileImport(sampleProfileData);
+      // Pass the data up to the parent
+      onProfileImport(profileData);
       
       // Clear the form
       setUrl('');
@@ -122,7 +218,16 @@ const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
       if (previewSection) {
         previewSection.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "There was an error importing your LinkedIn profile.",
+        variant: "destructive"
+      });
+      console.error('Error during import:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,16 +310,16 @@ const LinkedInForm: React.FC<LinkedInFormProps> = ({ onProfileImport }) => {
               <Button 
                 className="w-full group" 
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || geminiLoading}
               >
-                {loading ? (
+                {loading || geminiLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
+                    {loading ? "Importing..." : "Enhancing with Gemini..."}
                   </>
                 ) : (
                   <>
-                    Import and Continue
+                    Import and Generate with Gemini
                     <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </>
                 )}

@@ -113,8 +113,8 @@ const features = [
   },
   {
     icon: CheckCircle2,
-    title: "ATS-Optimized",
-    description: "Our CV templates are designed to pass through Applicant Tracking Systems with ease."
+    title: "AI-Enhanced",
+    description: "We use Google's Gemini to optimize your professional summary and make your CV stand out."
   },
   {
     icon: ArrowRightIcon,
@@ -127,7 +127,7 @@ const features = [
 const socialProof = [
   "No credit card required",
   "Used by 100,000+ professionals",
-  "4.9/5 average rating"
+  "AI-enhanced summaries"
 ];
 
 export default Index;
